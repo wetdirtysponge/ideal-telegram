@@ -1,0 +1,328 @@
+
+html_code = r"""<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Мини‑магазин игр — Game Store</title>
+  <meta name="description" content="Мини‑магазин игр с корзиной — готовый .html файл для GitHub Pages или Telegram Web App" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Доп. анимации и стили */
+    @keyframes floaty {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0px); }
+    }
+    .card-hover { transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s; }
+    .card-hover:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 16px 40px rgba(2,6,23,.6); }
+    .btn-glow { animation: floaty 3s ease-in-out infinite; }
+    .blur-bg { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-slate-900 via-black to-slate-800 text-white min-h-screen antialiased">
+  <div class="max-w-5xl mx-auto p-6">
+    <header class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-pink-500 flex items-center justify-center text-2xl font-bold shadow-lg card-hover btn-glow">🎮</div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold">Game Store — мини‑витрина</h1>
+          <p class="text-slate-400 text-sm">Красивые карточки, описания и простая корзина</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <a href="https://t.me/notlyrisc" target="_blank" rel="noopener" class="text-sky-400 hover:underline">t.me/notlyrisc</a>
+        <button id="cart-btn" class="relative bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg border border-slate-700">
+          🛒 <span id="cart-count" class="ml-2 font-semibold">0</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section id="games" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+    </main>
+  </div>
+
+  <!-- Cart modal / drawer -->
+  <div id="cart-modal" class="fixed inset-0 z-40 hidden">
+    <div id="cart-overlay" class="absolute inset-0 bg-black/60"></div>
+    <aside class="absolute right-0 top-0 h-full w-full sm:w-96 bg-slate-900 border-l border-slate-800 p-4 flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold">Корзина</h3>
+        <button id="close-cart" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div id="cart-items" class="flex-1 overflow-auto space-y-3"></div>
+
+      <div class="mt-4 border-t border-slate-800 pt-3">
+        <div class="flex justify-between items-center mb-3">
+          <div class="text-slate-400">Итого:</div>
+          <div id="cart-total" class="text-lg font-bold">0 ₽</div>
+        </div>
+        <div class="flex gap-2">
+          <button id="checkout" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-semibold">Оформить</button>
+          <button id="clear-cart" class="bg-red-600 hover:bg-red-500 py-2 px-3 rounded-lg">Очистить</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // Набор игр — можно заменять / дополнять
+    const games = [
+      {
+        id: 1,
+        title: 'Cyber Drift',
+        price: 1499,
+        image: 'https://picsum.photos/id/1011/640/360',
+        description: 'Футуристические неоновые гонки с динамичным саундтреком и режимом drift.'
+      },
+      {
+        id: 2,
+        title: 'Sky Warriors',
+        price: 999,
+        image: 'https://picsum.photos/id/1015/640/360',
+        description: 'Воздушные сражения, кастомизация самолётов и кооперативные миссии.'
+      },
+      {
+        id: 3,
+        title: 'Dungeon Crawler',
+        price: 1299,
+        image: 'https://picsum.photos/id/1025/640/360',
+        description: 'Пиксельный рогалик: глубже подземелья — больше опасностей и сокровищ.'
+      },
+      {
+        id: 4,
+        title: 'Mystic Farm',
+        price: 799,
+        image: 'https://picsum.photos/id/1040/640/360',
+        description: 'Уютный симулятор фермы с магией, выращиванием и торговлей.'
+      },
+      {
+        id: 5,
+        title: 'Neon Heist',
+        price: 1199,
+        image: 'https://picsum.photos/id/1050/640/360',
+        description: 'Тактическая стелс‑экшн игра про группировку хакеров в неоновом городе.'
+      },
+      {
+        id: 6,
+        title: 'Orbit Racers',
+        price: 899,
+        image: 'https://picsum.photos/id/1060/640/360',
+        description: 'Гонки на орбитальных трассах с антигравитацией и ускорителями.'
+      }
+    ];
+
+    // Состояние корзины
+    let cart = [];
+
+    // Элементы DOM
+    const gamesContainer = document.getElementById('games');
+    const cartBtn = document.getElementById('cart-btn');
+    const cartCount = document.getElementById('cart-count');
+    const cartModal = document.getElementById('cart-modal');
+    const cartOverlay = document.getElementById('cart-overlay');
+    const closeCartBtn = document.getElementById('close-cart');
+    const cartItemsEl = document.getElementById('cart-items');
+    const cartTotalEl = document.getElementById('cart-total');
+    const checkoutBtn = document.getElementById('checkout');
+    const clearCartBtn = document.getElementById('clear-cart');
+
+    // Render карточек игр
+    function renderGames() {
+      gamesContainer.innerHTML = '';
+      games.forEach(game => {
+        const card = document.createElement('article');
+        card.className = 'bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-700 card-hover';
+        card.innerHTML = `
+          <img src="${game.image}" alt="${escapeHtml(game.title)}" class="w-full h-40 object-cover">
+          <div class="p-4">
+            <h4 class="font-bold text-lg mb-1">${escapeHtml(game.title)}</h4>
+            <p class="text-slate-400 text-sm mb-3 leading-tight">${escapeHtml(game.description)}</p>
+            <div class="flex items-center justify-between">
+              <div class="text-slate-200 font-semibold">${game.price} ₽</div>
+              <div class="flex gap-2">
+                <button data-id="${game.id}" class="add-btn bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded-lg text-sm">Добавить</button>
+                <button data-id="${game.id}" class="preview-btn border border-slate-700 px-3 py-1 rounded-lg text-sm">Подробнее</button>
+              </div>
+            </div>
+          </div>
+        `;
+        gamesContainer.appendChild(card);
+      });
+
+      // Навесим обработчики
+      document.querySelectorAll('.add-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.id);
+          const game = games.find(g => g.id === id);
+          if (game) addToCart(game);
+        });
+      });
+
+      document.querySelectorAll('.preview-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.id);
+          const game = games.find(g => g.id === id);
+          if (game) showPreview(game);
+        });
+      });
+    }
+
+    // Экраны предпросмотра (простая)
+    function showPreview(game) {
+      const prev = document.createElement('div');
+      prev.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
+      prev.innerHTML = `
+        <div class="absolute inset-0 bg-black/70"></div>
+        <div class="relative max-w-2xl w-full bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
+          <img src="${game.image}" alt="${escapeHtml(game.title)}" class="w-full h-56 object-cover">
+          <div class="p-4">
+            <h3 class="text-2xl font-bold mb-2">${escapeHtml(game.title)}</h3>
+            <p class="text-slate-300 mb-3">${escapeHtml(game.description)}</p>
+            <div class="flex items-center justify-between">
+              <div class="font-bold text-lg">${game.price} ₽</div>
+              <div class="flex gap-2">
+                <button id="pv-add" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg">В корзину</button>
+                <button id="pv-close" class="border border-slate-700 px-4 py-2 rounded-lg">Закрыть</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(prev);
+
+      document.getElementById('pv-close').addEventListener('click', () => prev.remove());
+      document.getElementById('pv-add').addEventListener('click', () => {
+        addToCart(game);
+        prev.remove();
+      });
+    }
+
+    // Добавление в корзину
+    function addToCart(game) {
+      cart.push(game);
+      updateCartUI();
+      // небольшая нотификация
+      showToast(`Добавлено: ${game.title}`);
+    }
+
+    // Удаление по индексу
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    }
+
+    // Обновление счётчика и содержимого корзины
+    function updateCartUI() {
+      cartCount.textContent = cart.length;
+      renderCartItems();
+      cartTotalEl.textContent = `${cart.reduce((s, g) => s + g.price, 0)} ₽`;
+      // Сохраним в localStorage, чтобы не потерять при перезагрузке (опционально)
+      try { localStorage.setItem('mini_store_cart', JSON.stringify(cart)); } catch(e) {}
+    }
+
+    function renderCartItems() {
+      cartItemsEl.innerHTML = '';
+      if (cart.length === 0) {
+        cartItemsEl.innerHTML = '<div class="text-slate-400">Корзина пуста</div>';
+        return;
+      }
+      cart.forEach((item, idx) => {
+        const el = document.createElement('div');
+        el.className = 'flex items-center gap-3 bg-slate-800 rounded-lg p-2';
+        el.innerHTML = `
+          <img src="${item.image}" alt="${escapeHtml(item.title)}" class="w-14 h-10 object-cover rounded">
+          <div class="flex-1">
+            <div class="font-semibold text-sm">${escapeHtml(item.title)}</div>
+            <div class="text-slate-400 text-xs">${item.price} ₽</div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button data-idx="${idx}" class="remove-btn text-red-400 hover:text-red-300 text-sm">Удалить</button>
+          </div>
+        `;
+        cartItemsEl.appendChild(el);
+      });
+
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          removeFromCart(idx);
+        });
+      });
+    }
+
+    // Переключение модального окна корзины
+    function openCart() {
+      cartModal.classList.remove('hidden');
+    }
+    function closeCart() {
+      cartModal.classList.add('hidden');
+    }
+
+    // Очистка корзины
+    function clearCart() {
+      cart = [];
+      updateCartUI();
+    }
+
+    // Оформление — пока переход на телеграм или просто демонстрация
+    function checkout() {
+      if (cart.length === 0) {
+        alert('Корзина пуста!');
+        return;
+      }
+      // Здесь можно интегрировать платёжную систему или собрать заказ в формате. Пока — редирект в телеграм.
+      const to = 'https://t.me/notlyrisc';
+      window.open(to, '_blank');
+    }
+
+    // Всплывашка (очень простая)
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed left-1/2 -translate-x-1/2 bottom-8 bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-sm';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
+    }
+
+    // Экран загрузки: восстановить корзину
+    function restoreCart() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('mini_store_cart') || '[]');
+        if (Array.isArray(saved)) cart = saved;
+      } catch(e) { cart = []; }
+    }
+
+    // Escape для вставки текста в innerHTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // События
+    document.addEventListener('DOMContentLoaded', () => {
+      restoreCart();
+      renderGames();
+      updateCartUI();
+
+      cartBtn.addEventListener('click', () => {
+        openCart();
+      });
+      cartOverlay.addEventListener('click', closeCart);
+      closeCartBtn.addEventListener('click', closeCart);
+      checkoutBtn.addEventListener('click', checkout);
+      clearCartBtn.addEventListener('click', () => {
+        if (confirm('Очистить корзину?')) clearCart();
+      });
+    });
+  </script>
+</body>
+</html>
