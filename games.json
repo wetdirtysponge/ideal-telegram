@@ -10,5 +10,11 @@
     "name": "God of war",
     "price": 2500,
     "image": "https://image.api.playstation.com/vulcan/img/rnd/202010/2217/ax0V5TYMax06mLzmkWeQMiwH.jpg"
+  },
+  {
+    "id": 3,
+    "name": "Spider man",
+    "price": 1990,
+    "image": "https://image.api.playstation.com/vulcan/ap/rnd/202009/3021/B2aUYFC0qUAkNnjbTHRyhrg3.png"
   }
 ]
