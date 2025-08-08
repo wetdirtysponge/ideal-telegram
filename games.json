@@ -4,5 +4,11 @@
     "name": "The last of us",
     "price": 2999,
     "image": "https://wallup.net/wp-content/uploads/2017/03/29/94132-The_Last_of_Us.jpg"
+  },
+  {
+    "id": 2,
+    "name": "God of war",
+    "price": 2500,
+    "image": "https://image.api.playstation.com/vulcan/img/rnd/202010/2217/ax0V5TYMax06mLzmkWeQMiwH.jpg"
   }
 ]
