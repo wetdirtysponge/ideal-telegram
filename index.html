@@ -1,5 +1,4 @@
-
-html_code = r"""<!doctype html>
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
@@ -8,7 +7,6 @@ html_code = r"""<!doctype html>
   <meta name="description" content="Мини‑магазин игр с корзиной — готовый .html файл для GitHub Pages или Telegram Web App" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Доп. анимации и стили */
     @keyframes floaty {
       0% { transform: translateY(0px); }
       50% { transform: translateY(-6px); }
@@ -30,7 +28,6 @@ html_code = r"""<!doctype html>
           <p class="text-slate-400 text-sm">Красивые карточки, описания и простая корзина</p>
         </div>
       </div>
-
       <div class="flex items-center gap-4">
         <a href="https://t.me/notlyrisc" target="_blank" rel="noopener" class="text-sky-400 hover:underline">t.me/notlyrisc</a>
         <button id="cart-btn" class="relative bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg border border-slate-700">
@@ -44,7 +41,7 @@ html_code = r"""<!doctype html>
     </main>
   </div>
 
-  <!-- Cart modal / drawer -->
+  <!-- Модальное окно корзины -->
   <div id="cart-modal" class="fixed inset-0 z-40 hidden">
     <div id="cart-overlay" class="absolute inset-0 bg-black/60"></div>
     <aside class="absolute right-0 top-0 h-full w-full sm:w-96 bg-slate-900 border-l border-slate-800 p-4 flex flex-col">
@@ -52,9 +49,7 @@ html_code = r"""<!doctype html>
         <h3 class="text-xl font-bold">Корзина</h3>
         <button id="close-cart" class="text-slate-400 hover:text-white">✕</button>
       </div>
-
       <div id="cart-items" class="flex-1 overflow-auto space-y-3"></div>
-
       <div class="mt-4 border-t border-slate-800 pt-3">
         <div class="flex justify-between items-center mb-3">
           <div class="text-slate-400">Итого:</div>
@@ -68,57 +63,19 @@ html_code = r"""<!doctype html>
     </aside>
   </div>
 
+  <!-- Скрипт -->
   <script>
-    // Набор игр — можно заменять / дополнять
     const games = [
-      {
-        id: 1,
-        title: 'Cyber Drift',
-        price: 1499,
-        image: 'https://picsum.photos/id/1011/640/360',
-        description: 'Футуристические неоновые гонки с динамичным саундтреком и режимом drift.'
-      },
-      {
-        id: 2,
-        title: 'Sky Warriors',
-        price: 999,
-        image: 'https://picsum.photos/id/1015/640/360',
-        description: 'Воздушные сражения, кастомизация самолётов и кооперативные миссии.'
-      },
-      {
-        id: 3,
-        title: 'Dungeon Crawler',
-        price: 1299,
-        image: 'https://picsum.photos/id/1025/640/360',
-        description: 'Пиксельный рогалик: глубже подземелья — больше опасностей и сокровищ.'
-      },
-      {
-        id: 4,
-        title: 'Mystic Farm',
-        price: 799,
-        image: 'https://picsum.photos/id/1040/640/360',
-        description: 'Уютный симулятор фермы с магией, выращиванием и торговлей.'
-      },
-      {
-        id: 5,
-        title: 'Neon Heist',
-        price: 1199,
-        image: 'https://picsum.photos/id/1050/640/360',
-        description: 'Тактическая стелс‑экшн игра про группировку хакеров в неоновом городе.'
-      },
-      {
-        id: 6,
-        title: 'Orbit Racers',
-        price: 899,
-        image: 'https://picsum.photos/id/1060/640/360',
-        description: 'Гонки на орбитальных трассах с антигравитацией и ускорителями.'
-      }
+      { id: 1, title: 'Cyber Drift', price: 1499, image: 'https://picsum.photos/id/1011/640/360', description: 'Футуристические неоновые гонки с динамичным саундтреком и режимом drift.' },
+      { id: 2, title: 'Sky Warriors', price: 999, image: 'https://picsum.photos/id/1015/640/360', description: 'Воздушные сражения, кастомизация самолётов и кооперативные миссии.' },
+      { id: 3, title: 'Dungeon Crawler', price: 1299, image: 'https://picsum.photos/id/1025/640/360', description: 'Пиксельный рогалик: глубже подземелья — больше опасностей и сокровищ.' },
+      { id: 4, title: 'Mystic Farm', price: 799, image: 'https://picsum.photos/id/1040/640/360', description: 'Уютный симулятор фермы с магией, выращиванием и торговлей.' },
+      { id: 5, title: 'Neon Heist', price: 1199, image: 'https://picsum.photos/id/1050/640/360', description: 'Тактическая стелс‑экшн игра про группировку хакеров в неоновом городе.' },
+      { id: 6, title: 'Orbit Racers', price: 899, image: 'https://picsum.photos/id/1060/640/360', description: 'Гонки на орбитальных трассах с антигравитацией и ускорителями.' }
     ];
 
-    // Состояние корзины
     let cart = [];
 
-    // Элементы DOM
     const gamesContainer = document.getElementById('games');
     const cartBtn = document.getElementById('cart-btn');
     const cartCount = document.getElementById('cart-count');
@@ -130,7 +87,11 @@ html_code = r"""<!doctype html>
     const checkoutBtn = document.getElementById('checkout');
     const clearCartBtn = document.getElementById('clear-cart');
 
-    // Render карточек игр
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
     function renderGames() {
       gamesContainer.innerHTML = '';
       games.forEach(game => {
@@ -153,7 +114,6 @@ html_code = r"""<!doctype html>
         gamesContainer.appendChild(card);
       });
 
-      // Навесим обработчики
       document.querySelectorAll('.add-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = Number(btn.dataset.id);
@@ -171,7 +131,6 @@ html_code = r"""<!doctype html>
       });
     }
 
-    // Экраны предпросмотра (простая)
     function showPreview(game) {
       const prev = document.createElement('div');
       prev.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
@@ -201,26 +160,21 @@ html_code = r"""<!doctype html>
       });
     }
 
-    // Добавление в корзину
     function addToCart(game) {
       cart.push(game);
       updateCartUI();
-      // небольшая нотификация
       showToast(`Добавлено: ${game.title}`);
     }
 
-    // Удаление по индексу
     function removeFromCart(index) {
       cart.splice(index, 1);
       updateCartUI();
     }
 
-    // Обновление счётчика и содержимого корзины
     function updateCartUI() {
       cartCount.textContent = cart.length;
       renderCartItems();
       cartTotalEl.textContent = `${cart.reduce((s, g) => s + g.price, 0)} ₽`;
-      // Сохраним в localStorage, чтобы не потерять при перезагрузке (опционально)
       try { localStorage.setItem('mini_store_cart', JSON.stringify(cart)); } catch(e) {}
     }
 
@@ -254,32 +208,27 @@ html_code = r"""<!doctype html>
       });
     }
 
-    // Переключение модального окна корзины
     function openCart() {
       cartModal.classList.remove('hidden');
     }
+
     function closeCart() {
       cartModal.classList.add('hidden');
     }
 
-    // Очистка корзины
     function clearCart() {
       cart = [];
       updateCartUI();
     }
 
-    // Оформление — пока переход на телеграм или просто демонстрация
     function checkout() {
       if (cart.length === 0) {
         alert('Корзина пуста!');
         return;
       }
-      // Здесь можно интегрировать платёжную систему или собрать заказ в формате. Пока — редирект в телеграм.
-      const to = 'https://t.me/notlyrisc';
-      window.open(to, '_blank');
+      window.open('https://t.me/notlyrisc', '_blank');
     }
 
-    // Всплывашка (очень простая)
     function showToast(msg) {
       const t = document.createElement('div');
       t.className = 'fixed left-1/2 -translate-x-1/2 bottom-8 bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-sm';
@@ -288,7 +237,6 @@ html_code = r"""<!doctype html>
       setTimeout(() => t.remove(), 1800);
     }
 
-    // Экран загрузки: восстановить корзину
     function restoreCart() {
       try {
         const saved = JSON.parse(localStorage.getItem('mini_store_cart') || '[]');
@@ -296,26 +244,11 @@ html_code = r"""<!doctype html>
       } catch(e) { cart = []; }
     }
 
-    // Escape для вставки текста в innerHTML
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    // События
     document.addEventListener('DOMContentLoaded', () => {
       restoreCart();
       renderGames();
       updateCartUI();
-
-      cartBtn.addEventListener('click', () => {
-        openCart();
-      });
+      cartBtn.addEventListener('click', () => openCart());
       cartOverlay.addEventListener('click', closeCart);
       closeCartBtn.addEventListener('click', closeCart);
       checkoutBtn.addEventListener('click', checkout);
